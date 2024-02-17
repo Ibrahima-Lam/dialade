@@ -1,0 +1,17 @@
+{
+    "short_name": "Dialadé-foot",
+    "name": "dialade-foot",
+    "background_color": "#ffffff",
+    "theme_color": "#ffffff",
+    "display": "standalone",
+    "orientation": "any",
+    "scope": "/",
+    "start_url": "https://dialade-foot.web.app/index.html",
+    "icons": [
+        {
+            "src": "info.svg",
+            "sizes": "512*512",
+            "type": "image/svg"
+        }
+    ]
+}

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="manifest" href="../manifest.json">
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-auth-compat.js"></script>
+    <script src="../js/loader.js"></script>
+
+
+    <title>Formulaire de compétition</title>
+</head>
+
+<body>
+    <div class="container">
+
+        <form action="" class='form' id="form">
+            <div class="form-group">
+                <h1>Ajout d'une compétition</h1>
+                <div class="form-control">
+                    <input type="text" name="code" placeholder='Entrer le code de la compétition' required>
+                    <input type="text" name="nom" placeholder='Entrer le nom de la compétition' required>
+                    <input type="text" name="localite" placeholder='Entrer le localite de la compétition' required>
+                    <button type="submit">Envoyer</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script type="module">
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                var uid = user.uid;
+            } else {
+                alert("pas d'utilisateur en session, veuillez vous connectez")
+                window.location.assign('form/login.html?p=paramettre')
+            }
+            // const user = firebase.auth().currentUser;
+
+            if (user !== null) {
+                user.providerData.forEach((profile) => {
+                    console.log("Sign-in provider: " + profile.providerId);
+                    console.log("  Provider-specific UID: " + profile.uid);
+                    console.log("  Name: " + profile.displayName);
+                    console.log("  Email: " + profile.email);
+                    console.log("  Photo URL: " + profile.photoURL);
+                });
+            }
+        });
+
+
+
+
+        const form = document.getElementById('form');
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault()
+            if (!this.checkValidity()) alert('invalide!')
+
+            startLoading()
+            const res = await setToFirebase('competition', this.code.value, {
+                codeCompetition: this.code.value,
+                nomCompetition: this.nom.value,
+                localiteCompetition: this.localite.value,
+
+            })
+            endLoading()
+            window.location.assign('../paramettre.html')
+
+        })
+
+
+    </script>
+</body>
+
+</html>

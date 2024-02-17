@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore-compat.js"></script>
+    <script src="js/loader.js"></script>
+    <script src="js/script.js" type="module" defer></script>
+
+    <title>Accueil</title>
+</head>
+
+<body>
+    <div class="nav-bar">
+        <div class="nav-col">
+            <div class="row1">
+                <h3>Dialadé-foot</h3>
+                <select name="cmp" id="cmp">
+                    <option value="">Tout</option>
+
+                </select>
+            </div>
+            <div class="row2">
+
+                <ul>
+                    <li class="active"><a href="actualite.html"> Actualités </a></li>
+                    <li><a href="index.html"> Matchs </a></li>
+                    <li><a href="stat.html"> Stats </a></li>
+                    <li><a href="equipe.html"> Equipes </a></li>
+                    <li><a href="joueur.html"> Joueurs </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <h3>Actualités</h3>
+        <div id="actu">
+        </div>
+
+        <div class="" id="last"></div>
+    </div>
+    <template id="tmp-infos">
+        <div class="actu-row">
+            <div class="actu-col">
+                <div class="actu-title">
+                    <h3 class="title"></h3>
+                </div>
+                <div class="actu-text">
+                    <p class="texte">
+                    </p>
+                </div>
+                <div class="actu-foot">
+                    <div class="actu-comp"><span class="comp"></span></div>
+                    <div class="actu-date"><span class="date"></span></div>
+                </div>
+            </div>
+        </div>
+    </template>
+    <footer>
+        <div class="footer">
+            <div class="row">
+                <div class="col">
+                    <h3 class="titre">Liens</h3>
+                    <ul class="liens">
+                        <li><a href="actualite.html"> Actualités </a></li>
+                        <li><a href="index.html"> Matchs </a></li>
+                        <li><a href="stat.html"> Stats </a></li>
+                        <li><a href="equipe.html"> Equipes </a></li>
+                        <li><a href="joueur.html"> Joueurs </a></li>
+                        <li><a href="paramettre.html"> Paramettre </a></li>
+                    </ul>
+                </div>
+                <div class="col">
+                    <h3 class="titre">Contact</h3>
+                    <p>Mauritanie, Boghé</p>
+                    <p><a href="tel:+222 41916418">+222 41916418</a></p>
+                    <p><a href="mailto:ibrahimaaboulam@gmail.com">Envoyer un Courrier</a></p>
+                    <p>Whatsapp : +222 41 91 64 18</p>
+                </div>
+
+                <div class="col">
+                    <h3 class="titre">Plus D'infos</h3>
+                    <p><strong> Facebook: </strong> Dialadé-foot</p>
+                    <p><strong> Telegram: </strong> Dialadé-foot</p>
+                    <p><strong> Twitter: </strong> Dialadé-foot</p>
+                    <p><strong> instagram: </strong> Dialadé-foot</p>
+                </div>
+            </div>
+            <hr>
+            <div class="row-center">
+                <span>Dialade-foot - coperyght &copy;
+                    <script>document.writeln((new Date()).getFullYear())</script>
+                </span>
+                <span>dévoloppé par dialadé-technologie</span>
+            </div>
+        </div>
+    </footer>
+</body>
+<script type="module">
+    Notification.requestPermission()
+
+
+
+
+</script>
+
+<script type="module">
+    import { getData, Calendar } from "./js/src.js"
+    const actu = document.getElementById('actu');
+    let data = JSON.parse(sessionStorage.getItem('actualites')) ?? []
+    let datacomp = JSON.parse(sessionStorage.getItem('competitions')) ?? []
+    let competition = null
+
+
+    async function getResult(res) {
+
+        if (data.length == res?.length) return
+        data = []
+        data = res
+        await change()
+
+        data.forEach(element => {
+            if (Date.now() - (new Date(element.date)).getTime() < 86400 * 1000) showNotification(element.titre, {
+                body: element.texte,
+                tag: element.id,
+                timestamp: (new Date(element.date)).getTime()
+            })
+        });
+
+    }
+
+    navigator.serviceWorker.register("swk.js")
+
+    function showNotification(title, options) {
+        Notification.requestPermission((result) => {
+            if (result === "granted" || result === "default") {
+                navigator.serviceWorker.ready.then((registration) => {
+                    registration.showNotification(title, options);
+                });
+            }
+        });
+    }
+
+
+    const cmp = document.getElementById('cmp');
+    cmp.addEventListener('change', async function (e) {
+        competition = this.value
+        sessionStorage.setItem("competition", competition)
+        await change()
+    })
+
+
+
+    onActualites(getResult)
+    async function load() {
+
+        startLoading()
+        datacomp = await getCompetitions()
+        sessionStorage.setItem('competitions', JSON.stringify(datacomp))
+        endLoading()
+    }
+    window.addEventListener('load', async function (e) {
+        if (datacomp.length == 0) await load()
+        await change()
+
+    })
+
+    async function change() {
+        actu.innerHTML = ""
+        let elements = Object.values(data).sort((a, b) => {
+            return a.date <= b.date ? -1 : 1
+        })
+
+        if (competition) {
+            elements = elements.filter(elmt => {
+                return elmt.comp == competition
+            })
+        }
+        elements.forEach(element => {
+            const date = new Date(element.date)
+            const cal = new Calendar(date)
+            const comp = datacomp.filter(elmt => {
+                return element.codeCompetition == elmt.codeCompetition
+            })[0]?.nomCompetition
+
+            const tmpinfos = document.getElementById('tmp-infos').content.cloneNode(true);
+            tmpinfos.querySelector(".title").innerText = element.titre
+            tmpinfos.querySelector(".texte").innerText = element.texte
+            tmpinfos.querySelector(".comp").innerText = comp ?? 'Global'
+            tmpinfos.querySelector(".date").innerText = cal.frDayDate()
+            actu.append(tmpinfos)
+
+        });
+
+        const a = document.createElement("a")
+        a.href = "#last"
+        a.click()
+    }
+</script>
+
+</html>

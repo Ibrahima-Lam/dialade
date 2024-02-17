@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="manifest" href="../manifest.json">
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-auth-compat.js"></script>
+    <script src="../js/loader.js"></script>
+
+
+    <title>Formulaire d'actualité</title>
+</head>
+
+<body>
+    <div class="container">
+
+        <form action="" class='form' id="form">
+            <div class="form-group">
+                <h1>Ajout d'une actualité</h1>
+                <div class="form-control">
+                    <label for="">Titre</label>
+                    <input type="text" name="titre" id="titre" required>
+                </div>
+                <div class="form-control">
+                    <label for="">Texte</label>
+                    <textarea type="text" name="texte" id="texte" cols="30" rows="10" required></textarea>
+                </div>
+
+                <div class="form-control">
+                    <label for="">Date</label>
+                    <input type="datetime-local" name="date" id="date" required>
+                </div>
+
+                <div class="form-control">
+                    <label for="">Competition</label>
+                    <select name="codecomp" id="codecomp">
+                        <option>Global</option>
+                    </select>
+                </div>
+
+                <button type="submit">Envoyer</button>
+
+            </div>
+        </form>
+    </div>
+    <script type="module">
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                var uid = user.uid;
+            } else {
+                alert("pas d'utilisateur en session, veuillez vous connectez")
+                window.location.assign('form/login.html?p=paramettre')
+            }
+            // const user = firebase.auth().currentUser;
+
+            if (user !== null) {
+                user.providerData.forEach((profile) => {
+                    console.log("Sign-in provider: " + profile.providerId);
+                    console.log("  Provider-specific UID: " + profile.uid);
+                    console.log("  Name: " + profile.displayName);
+                    console.log("  Email: " + profile.email);
+                    console.log("  Photo URL: " + profile.photoURL);
+                });
+            }
+        });
+
+
+        const codecomp = document.getElementById('codecomp');
+        window.addEventListener('load', async function (e) {
+            startLoading()
+
+            const competitions = await getCompetitions()
+            competitions.forEach(elmt => {
+                const option = document.createElement('option')
+                option.value = elmt.codeCompetition
+                option.innerText = elmt.nomCompetition
+                codecomp.append(option)
+            })
+
+            endLoading()
+        })
+
+
+        const form = document.getElementById('form');
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault()
+            if (!this.checkValidity()) {
+                alert('invalide!')
+                return
+            }
+
+            startLoading()
+            const code = this.codecomp.value + Date.now()
+            const res = await setToFirebase('actualite', code, {
+                codeCompetition: this.codecomp.value,
+                texte: this.texte.value,
+                titre: this.titre.value,
+                date: this.date.value,
+                id: code
+            })
+            endLoading()
+            window.location.assign('../paramettre.html')
+
+        })
+
+
+    </script>
+</body>
+
+</html>

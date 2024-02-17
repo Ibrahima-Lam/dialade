@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore-compat.js"></script>
+    <script src="js/loader.js"></script>
+    <script src="js/script.js" type="module" defer></script>
+    <title>Stat</title>
+</head>
+
+<body>
+
+    <div class="nav-bar">
+        <div class="nav-col">
+            <div class="row1">
+                <h3>Dialadé-foot</h3>
+                <select name="cmp" id="cmp">
+
+                </select>
+            </div>
+            <div class="row2">
+
+                <ul>
+                    <li><a href="actualite.html"> Actualités </a></li>
+                    <li><a href="index.html"> Matchs </a></li>
+                    <li class="active"><a href="stat.html"> Stats </a></li>
+                    <li><a href="equipe.html"> Equipes </a></li>
+                    <li><a href="joueur.html"> Joueurs </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div id="stat-container" class="content"></div>
+    </div>
+    <script type="module">
+        import { getData } from "./js/src.js";
+        import { Classeur } from "./js/classeur.js";
+        import { trContent, tableElement } from "./js/module/tableStat.js";
+        const statContainer = document.getElementById('stat-container');
+        const cmp = document.getElementById('cmp');
+
+        const time = Date.now()
+        let data = []
+        let game = getResult(JSON.parse(sessionStorage.getItem('games')) ?? [])
+        let groupe = JSON.parse(sessionStorage.getItem('groupes')) ?? []
+        let equipe = JSON.parse(sessionStorage.getItem('participations')) ?? []
+        let competition = cmp.value
+
+        function getResult(res) {
+
+            return res.filter(element => {
+                return element.homeScore !== null && element.awayScore !== null
+            }).map(element => {
+                return {
+                    home: {
+                        id: element.idHome,
+                        nom: element.home,
+                        but: element.homeScore
+                    }, away: {
+                        id: element.idAway,
+                        nom: element.away,
+                        but: element.awayScore
+                    },
+                    idGroupe: element.idGroupe,
+                    nomGroupe: element.nomGroupe,
+                }
+            })
+        }
+
+
+
+        onScores(async (res) => {
+            if (Date.now() - time < 10000) return
+            await load()
+            await charger()
+        })
+
+        async function load() {
+            startLoading()
+            game = getResult(await gameChargement())
+            groupe = await getGroupes()
+            equipe = await getParticipations()
+            endLoading()
+        }
+
+        window.addEventListener('load', async function (e) {
+            competition = sessionStorage.getItem("competition") ?? "district"
+            if (game.length == 0 || groupe.length == 0 || equipe.length == 0) await load()
+            await charger()
+        })
+
+        cmp.addEventListener('change', async function (e) {
+            competition = this.value
+            sessionStorage.setItem("competition", competition)
+            await charger()
+        })
+
+        const tbody = document.querySelector("tbody")
+        async function charger() {
+            statContainer.innerHTML = ""
+
+            const grp = groupe.filter(element => {
+                return element.codeCompetition === competition && element.codePhase == "grp"
+            })
+
+            grp.forEach(element => {
+                data = game.filter(elmt => {
+                    return elmt.idGroupe === element.idGroupe
+                })
+
+                const tab = equipe.filter(elmt => {
+                    return elmt.idGroupe === element.idGroupe
+                })
+
+                const classeur = new Classeur(data, tab)
+                const values = classeur.classer()
+                const table = constructTable(values)
+
+                table.querySelector(".title").innerText = "Groupe " + element.nomGroupe
+                statContainer.append(table)
+            });
+
+        }
+
+
+
+        function constructTable(data) {
+            const div = document.createElement('div');
+            let rows = ''
+            data.forEach((element, index) => {
+                rows += trContent(element)
+            });
+            const table = tableElement('', rows)
+            div.innerHTML = table
+            return div
+        }
+
+
+
+
+
+    </script>
+    <footer>
+        <div class="footer">
+            <div class="row">
+                <div class="col">
+                    <h3 class="titre">Liens</h3>
+                    <ul class="liens">
+                        <li><a href="actualite.html"> Actualités </a></li>
+                        <li><a href="index.html"> Matchs </a></li>
+                        <li><a href="stat.html"> Stats </a></li>
+                        <li><a href="equipe.html"> Equipes </a></li>
+                        <li><a href="joueur.html"> Joueurs </a></li>
+                        <li><a href="paramettre.html"> Paramettre </a></li>
+                    </ul>
+                </div>
+                <div class="col">
+                    <h3 class="titre">Contact</h3>
+                    <p>Mauritanie, Boghé</p>
+                    <p><a href="tel:+222 41916418">+222 41916418</a></p>
+                    <p><a href="mailto:ibrahimaaboulam@gmail.com">Envoyer un Courrier</a></p>
+                    <p>Whatsapp : +222 41 91 64 18</p>
+                </div>
+
+                <div class="col">
+                    <h3 class="titre">Plus D'infos</h3>
+                    <p><strong> Facebook: </strong> Dialadé-foot</p>
+                    <p><strong> Telegram: </strong> Dialadé-foot</p>
+                    <p><strong> Twitter: </strong> Dialadé-foot</p>
+                    <p><strong> instagram: </strong> Dialadé-foot</p>
+                </div>
+            </div>
+            <hr>
+            <div class="row-center">
+                <span>Dialade-foot - coperyght &copy;
+                    <script>document.writeln((new Date()).getFullYear())</script>
+                </span>
+                <span>dévoloppé par dialadé-technologie</span>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

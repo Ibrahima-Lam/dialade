@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore-compat.js"></script>
+    <script src="js/loader.js"></script>
+
+    <script src="js/script.js" type="module" defer></script>
+
+    <title>Accueil</title>
+</head>
+
+<body>
+    <div class="nav-bar">
+        <div class="nav-col">
+            <div class="row1">
+                <h3>Dialadé-foot</h3>
+                <select name="cmp" id="cmp">
+                    <option value="">Tout</option>
+
+                </select>
+            </div>
+            <div class="row2">
+
+                <ul>
+                    <li><a href="actualite.html"> Actualités </a></li>
+                    <li class="active"><a href="index.html"> Matchs </a></li>
+                    <li><a href="stat.html"> Stats </a></li>
+                    <li><a href="equipe.html"> Equipes </a></li>
+                    <li><a href="joueur.html"> Joueurs </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+
+        <div id="match-container"></div>
+
+        <template id="tmp-date">
+            <div class="match-date">
+                <div class="mtch">
+                    <span class="day">Aujourd'hui</span>
+                </div>
+            </div>
+        </template>
+        <template id="tmp-match">
+            <div class="match-row">
+                <div class="match-head">
+                    <span class="comp"></span>
+                    <span class="level"></span>
+                </div>
+                <div class="match-body">
+                    <span class="home"></span>
+                    <span class="vs"></span>
+                    <span class="away"></span>
+                </div>
+                <div class="match-foot">
+                    <span class="stadium"></span>
+                </div>
+            </div>
+        </template>
+    </div>
+    <footer>
+        <div class="footer">
+            <div class="row">
+                <div class="col">
+                    <h3 class="titre">Liens</h3>
+                    <ul class="liens">
+                        <li><a href="actualite.html"> Actualités </a></li>
+                        <li><a href="index.html"> Matchs </a></li>
+                        <li><a href="stat.html"> Stats </a></li>
+                        <li><a href="equipe.html"> Equipes </a></li>
+                        <li><a href="joueur.html"> Joueurs </a></li>
+                        <li><a href="paramettre.html"> Paramettre </a></li>
+                    </ul>
+                </div>
+                <div class="col">
+                    <h3 class="titre">Contact</h3>
+                    <p>Mauritanie, Boghé</p>
+                    <p><a href="tel:+222 41916418">+222 41916418</a></p>
+                    <p><a href="mailto:ibrahimaaboulam@gmail.com">Envoyer un Courrier</a></p>
+                    <p>Whatsapp : +222 41 91 64 18</p>
+                </div>
+
+                <div class="col">
+                    <h3 class="titre">Plus D'infos</h3>
+                    <p><strong> Facebook: </strong> Dialadé-foot</p>
+                    <p><strong> Telegram: </strong> Dialadé-foot</p>
+                    <p><strong> Twitter: </strong> Dialadé-foot</p>
+                    <p><strong> instagram: </strong> Dialadé-foot</p>
+                </div>
+            </div>
+            <hr>
+            <div class="row-center">
+                <span>Dialade-foot - copyright &copy;
+                    <script>document.writeln((new Date()).getFullYear())</script>
+                </span>
+                <span>dévoloppé par dialadé-technologie</span>
+            </div>
+        </div>
+    </footer>
+</body>
+
+<script type="module">
+
+    import { getData, Calendar } from "./js/src.js"
+
+    const matchcontainer = document.getElementById('match-container');
+    const cmp = document.getElementById('cmp');
+    let data = JSON.parse(sessionStorage.getItem('games')) ?? []
+    let checked = false
+    let competition = null
+    const time = Date.now()
+
+    onScores(async (res) => {
+        if (Date.now() - time < 10000) return
+
+        await load()
+        await change()
+    })
+
+    async function load() {
+
+        startLoading()
+        data = await gameChargement()
+        sessionStorage.setItem('games', JSON.stringify(data))
+        endLoading()
+    }
+    window.addEventListener('load', async function (e) {
+        competition = sessionStorage.getItem("competition") ?? ""
+        if (data.length == 0) await load()
+        await change()
+
+    })
+
+    cmp.addEventListener('change', async function (e) {
+        competition = this.value
+        sessionStorage.setItem("competition", competition)
+        await change()
+    })
+
+    async function change() {
+        matchcontainer.innerHTML = ""
+        let elements = data.sort((a, b) => {
+            if (a.dateGame === b.dateGame) {
+                if (a.heureGame !== b.heureGame) return a.heureGame <= b.heureGame ? -1 : 1
+                return a.idGame <= b.idGame ? -1 : 1
+            }
+            return a.dateGame <= b.dateGame ? -1 : 1
+        })
+
+        if (competition) {
+            elements = elements.filter(element => {
+                return element.codeCompetition === competition
+            })
+        }
+
+        let old = ""
+        elements.forEach(element => {
+
+            if (old !== element.dateGame && (element.dateGame ?? null)) {
+                const date = constructDate(element)
+                matchcontainer.append(date)
+                old = element.dateGame
+            }
+            const mtch = constructMatch(element)
+            matchcontainer.append(mtch)
+        });
+
+        const a = document.createElement("a")
+        a.href = "#today"
+        a.click()
+
+    }
+
+    function constructMatch(element) {
+        const { nomCompetition, nomNiveau, heureGame, stadeGame, homeScore, awayScore, homeScorePenalty, awayScorePenalty, home, away } = element
+        const tmpmatch = document.getElementById('tmp-match').content.cloneNode(true);
+        tmpmatch.querySelector(".comp").innerText = nomCompetition
+        tmpmatch.querySelector(".level").innerText = nomNiveau
+        tmpmatch.querySelector(".home").innerText = home + (homeScore == awayScore && homeScorePenalty !== null && awayScorePenalty !== null ? `   (${homeScorePenalty})` : '')
+        tmpmatch.querySelector(".away").innerText = (homeScore == awayScore && homeScorePenalty !== null && awayScorePenalty !== null ? `(${awayScorePenalty})   ` : '') + away
+        tmpmatch.querySelector(".stadium").innerText = stadeGame
+        if (homeScore !== null && awayScore !== null) {
+            tmpmatch.querySelector(".vs").innerText = `${homeScore}-${awayScore}`
+        } else if (heureGame !== null) tmpmatch.querySelector(".vs").innerText = heureGame
+        else tmpmatch.querySelector(".vs").innerText = "vs"
+        return tmpmatch
+    }
+
+    function constructDate(element) {
+        const { dateGame, heureGame } = element
+        if (!dateGame) return false
+        const tmpdate = document.getElementById('tmp-date').content.cloneNode(true);
+
+        const date = new Date(`${dateGame} ${heureGame}`)
+        const cal = new Calendar(date)
+        const day = cal.frDayDate()
+        tmpdate.querySelector(".day").innerText = day
+        if (cal.next() && !checked) {
+            tmpdate.querySelector(".day").id = "today"
+            checked = true
+        }
+        return tmpdate
+    }
+
+</script>
+
+
+</html>

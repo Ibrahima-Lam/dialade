@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-auth-compat.js"></script>
+    <script src="js/loader.js"></script>
+
+    <script src="js/script.js" type="module" defer></script>
+
+    <title>Paramettre</title>
+</head>
+
+<body>
+    <div class="nav-bar">
+        <div class="nav-col">
+            <div class="row1">
+                <h3>Dialadé-foot</h3>
+                <select name="cmp" id="cmp">
+                    <option value="">Tout</option>
+
+                </select>
+            </div>
+            <div class="row2">
+
+                <ul>
+                    <li><a href="actualite.html"> Actualités </a></li>
+                    <li class="active"><a href="index.html"> Matchs </a></li>
+                    <li><a href="stat.html"> Stats </a></li>
+                    <li><a href="equipe.html"> Equipes </a></li>
+                    <li><a href="joueur.html"> Joueurs </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <h1>Ajout des éléments</h1>
+        <div class="paramettre-control list">
+            <ul>
+
+                <li><a href="form/actualite.html">Ajouter une actualité</a></li>
+                <li><a href="form/competition.html">Ajouter une compétition</a></li>
+                <li> <a href="form/groupe.html">Ajouter un groupe</a></li>
+                <li><a href="form/equipe.html">Ajouter une équipe</a></li>
+                <li> <a href="form/participant.html">Ajouter un participant</a></li>
+                <li><a href="form/participation.html">Ajouter une participation</a></li>
+                <li> <a href="form/game.html">Ajouter un match</a></li>
+                <li> <a href="form/score.html">Ajouter un score</a></li>
+                <li> <a href="form/tiraubut.html">Ajouter un score de tir au but</a></li>
+            </ul>
+        </div>
+    </div>
+    <footer>
+        <div class="footer">
+            <div class="row">
+                <div class="col">
+                    <h3 class="titre">Liens</h3>
+                    <ul class="liens">
+                        <li><a href="actualite.html"> Actualités </a></li>
+                        <li><a href="index.html"> Matchs </a></li>
+                        <li><a href="stat.html"> Stats </a></li>
+                        <li><a href="equipe.html"> Equipes </a></li>
+                        <li><a href="joueur.html"> Joueurs </a></li>
+                        <li><a href="paramettre.html"> Paramettre </a></li>
+                    </ul>
+                </div>
+                <div class="col">
+                    <h3 class="titre">Contact</h3>
+                    <p>Mauritanie, Boghé</p>
+                    <p><a href="tel:+222 41916418">+222 41916418</a></p>
+                    <p><a href="mailto:ibrahimaaboulam@gmail.com">Envoyer un Courrier</a></p>
+                    <p>Whatsapp : +222 41 91 64 18</p>
+                </div>
+
+                <div class="col">
+                    <h3 class="titre">Plus D'infos</h3>
+                    <p><strong> Facebook: </strong> Dialadé-foot</p>
+                    <p><strong> Telegram: </strong> Dialadé-foot</p>
+                    <p><strong> Twitter: </strong> Dialadé-foot</p>
+                    <p><strong> instagram: </strong> Dialadé-foot</p>
+                </div>
+            </div>
+            <hr>
+            <div class="row-center">
+                <span>Dialade-foot - copyright &copy;
+                    <script>document.writeln((new Date()).getFullYear())</script>
+                </span>
+                <span>dévoloppé par dialadé-technologie</span>
+            </div>
+        </div>
+    </footer>
+</body>
+
+<script type="module">
+
+
+
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            var uid = user.uid;
+        } else {
+            alert("pas d'utilisateur en session, veuillez vous connectez svp!")
+            window.location.assign('./form/login.html?p=paramettre')
+        }
+        // const user = firebase.auth().currentUser;
+
+        if (user !== null) {
+            user.providerData.forEach((profile) => {
+                console.log("Sign-in provider: " + profile.providerId);
+                console.log("  Provider-specific UID: " + profile.uid);
+                console.log("  Name: " + profile.displayName);
+                console.log("  Email: " + profile.email);
+                console.log("  Photo URL: " + profile.photoURL);
+            });
+        }
+
+
+    });
+    const cmp = document.getElementById('cmp');
+    cmp.addEventListener('change', async function (e) {
+        const competition = this.value
+        sessionStorage.setItem("competition", competition)
+
+    })
+
+</script>
+
+
+</html>
